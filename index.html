@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pixel Flappy Bird</title>
+<style>
+body { background: #87CEEB; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; image-rendering: pixelated; }
+canvas { border: 4px solid #333; image-rendering: pixelated; background: #87CEEB; }
+</style>
+</head>
+<body>
+<canvas id="game" width="400" height="600"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+let birdY = 300, birdVY = 0;
+const birdX = 80;
+let pipes = [];
+let score = 0;
+let frame = 0;
+let gameOver = false;
+
+function spawnPipe() {
+  const gap = 150;
+  const top = Math.random() * (400 - gap) + 50;
+  pipes.push({x: 400, top: top, bottom: top + gap});
+}
+
+function loop() {
+  if (gameOver) return;
+  frame++;
+  if (frame % 100 === 0) spawnPipe();
+  birdVY += 0.5;
+  birdY += birdVY;
+
+  pipes.forEach(p => {
+    p.x -= 3;
+    if (p.x + 50 < birdX && !p.scored) { score++; p.scored = true; }
+    if (birdX + 20 > p.x && birdX < p.x + 50 && (birdY < p.top || birdY + 20 > p.bottom)) {
+      gameOver = true;
+      alert('Game Over! Score: ' + score);
+      location.reload();
+    }
+  });
+  pipes = pipes.filter(p => p.x > -60);
+
+  if (birdY < 0 || birdY > 580) {
+    gameOver = true;
+    alert('Game Over! Score: ' + score);
+    location.reload();
+  }
+
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0,0,400,600);
+  // Ground
+  ctx.fillStyle = '#8B4513';
+  ctx.fillRect(0, 560, 400, 40);
+  // Bird
+  ctx.fillStyle = '#FFD700';
+  ctx.fillRect(birdX, birdY, 20, 20);
+  // Pipes
+  ctx.fillStyle = '#228B22';
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, 50, p.top);
+    ctx.fillRect(p.x, p.bottom, 50, 560 - p.bottom);
+  });
+  ctx.fillStyle = '#000';
+  ctx.font = '30px monospace';
+  ctx.fillText(score, 180, 50);
+  requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.key === ' ') birdVY = -8;
+});
+canvas.addEventListener('click', () => birdVY = -8);
+
+loop();
+</script>
+</body>
+</html>
